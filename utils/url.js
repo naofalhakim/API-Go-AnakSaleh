@@ -3,6 +3,8 @@ const URL = {
         getAllUser: '/get-all-user',
         login: '/login',
         register: '/register',
+        requestReset: '/request-reset',
+        resetPassword: '/reset-password',
     }
 }
 
