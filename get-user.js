@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const mysql = require('mysql2');
 const { URL, RESPONSE } = require('./utils/url');
 const { generateResponse } = require('./utils/function');
-const { JWT_SECRET } = require('./utils/env');
+const { JWT_SECRET, EMAIL_USER } = require('./utils/env');
 
 
 const db = mysql.createConnection({
@@ -14,6 +16,15 @@ const db = mysql.createConnection({
   user: 'root',
   password: '',
   database: 'go_anak_saleh',
+});
+
+const transporter = nodemailer.createTransport({
+  host: 'localhost',
+  port: 587,
+  auth: {
+    user: 'naofalhakim@gmail.com',
+    pass: 'Terate@1922'
+  }
 });
 
 const myConnection = () => {
@@ -107,7 +118,7 @@ router.post(URL.AUTH.register, (req, res) => {
 
 
 // Login route
-router.post('/login', async (req, res) => {
+router.post(URL.AUTH.login, async (req, res) => {
   // const dummyData = {
   //   email:'hakimnaofal@gmail.com',
   //   password:'naofal@123',
@@ -140,6 +151,71 @@ router.post('/login', async (req, res) => {
     console.error(err.message);
     res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
   }
+});
+
+
+// Request password reset
+router.post(URL.AUTH.requestReset, (req, res) => {
+  // const dummyData = {
+  //   email:'hakimnaofal@gmail.com',
+  //   phone:'naofal@123',
+  // }
+  const { email, phone } = req.body;
+
+  db.query('SELECT * FROM users WHERE email = ? AND phone = ?', [email, phone], (err, results) => {
+    if (err) throw err;
+    if (results.length === 0) {
+      return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'No user with that email', {isUserExist: RESPONSE.ERROR}));
+    }
+
+    // const token = crypto.randomBytes(6).toString('hex');
+    // const expiration = new Date(Date.now() + 3600000); // 1 hour
+
+    // db.query('INSERT INTO password_resets (email, token, expiration) VALUES (?, ?, ?)', [email, token, expiration], (err, results) => {
+    //   if (err) throw err;
+
+    //   const mailOptions = {
+    //     from: EMAIL_USER,
+    //     to: email,
+    //     subject: 'Password Reset',
+    //     text: `You requested a password reset. Please use the following token to reset your password: ${token}`
+    //   };
+
+    //   transporter.sendMail(mailOptions, (err, info) => {
+    //     if (err) {
+    //       console.error(err);
+    //       return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Error sending email',));
+    //     }
+    //     res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset email sent' ));
+    //   });
+    // });
+    res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset email sent', {isUserExist: RESPONSE.SUCCESS} ));
+  });
+});
+
+// Reset password
+router.post(URL.AUTH.resetPassword, async (req, res) => {
+  const { email, phone, newPassword } = req.body;
+
+  db.query('SELECT * FROM users WHERE email = ? AND phone = ?', [email, phone], async (err, results) => {
+    if (err) throw err;
+    if (results.length === 0) {
+      return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'No user with that email'));
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    db.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err, results) => {
+      if (err) throw err;
+
+      db.query('DELETE FROM password_resets WHERE email = ?', [email], (err, results) => {
+        if (err) throw err;
+        // res.status(200).json({ message: 'Password reset successfully' });
+        res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset successfully'));
+      });
+    });
+  });
 });
 
 
