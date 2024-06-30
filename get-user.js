@@ -130,7 +130,7 @@ router.post(URL.AUTH.login, async (req, res) => {
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
-        return res.status(RESPONSE.CODE.BAD_REQUEST).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.BAD_REQUEST, 'Invalid email or password'));
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Invalid email or password'));
       }
 
       const user = results[0];
@@ -138,7 +138,7 @@ router.post(URL.AUTH.login, async (req, res) => {
       // Check password
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(RESPONSE.CODE.BAD_REQUEST).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.BAD_REQUEST, 'Invalid email or password'));
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Invalid email or password'));
       }
 
       // Create and return JWT
@@ -149,7 +149,7 @@ router.post(URL.AUTH.login, async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
-    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:'+ err.message));
   }
 });
 
