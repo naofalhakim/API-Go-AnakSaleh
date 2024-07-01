@@ -145,7 +145,8 @@ router.post(URL.AUTH.login, async (req, res) => {
       const payload = { userId: user.email };
       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1y' });
 
-      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Logged in successfuly', { name: user.name, email: user.email, phone: user.phone, gender: user.gender, token }));
+      delete user.password;
+      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Logged in successfuly', { ...user, token }));
     });
   } catch (err) {
     console.error(err.message);
