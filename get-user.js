@@ -219,5 +219,38 @@ router.post(URL.AUTH.resetPassword, async (req, res) => {
   });
 });
 
+// Route to update user profile based on email
+router.put('/update-profile', (req, res) => {
+  const { email, name, gender, age, phone } = req.body;
+
+  if (!email) {
+    return res.status(RESPONSE.CODE.BAD_REQUEST).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.BAD_REQUEST, 'Email is required'));
+  }
+
+  let updateFields = [];
+  if (name) updateFields.push(`name = ${db.escape(name)}`);
+  if (gender) updateFields.push(`gender = ${db.escape(gender)}`);
+  if (age) updateFields.push(`age = ${db.escape(age)}`);
+  if (phone) updateFields.push(`phone = ${db.escape(phone)}`);
+  const updateString = updateFields.join(', ');
+
+  if (updateString.length === 0) {
+    return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'No fields to update'));
+  }
+
+  const query = `UPDATE users SET ${updateString} WHERE email = ${db.escape(email)}`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR,RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
+    }
+    if (results.affectedRows === 0) {
+      return res.status(RESPONSE.CODE.URL_NOT_FOUND).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.URL_NOT_FOUND, 'User not found'))
+    }
+    return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'User updated sucessfully'))
+  });
+});
+
 
 module.exports = router
