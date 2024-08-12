@@ -5,6 +5,16 @@ const URL = {
         register: '/register',
         requestReset: '/request-reset',
         resetPassword: '/reset-password',
+    },
+    MATERI: {
+        getAllMateri: '/get-all-materi',
+        getAllSubMateri: '/get-all-sub-materi',
+        initUserMateri: '/init-users-learning-subject',
+        initUserSubMateri: '/init-users-learning-sub-subject',
+        login: '/login',
+        register: '/register',
+        requestReset: '/request-reset',
+        resetPassword: '/reset-password',
     }
 }
 
