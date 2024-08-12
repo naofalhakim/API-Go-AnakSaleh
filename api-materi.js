@@ -139,25 +139,25 @@ router.get(URL.MATERI.getAllMateri, async (req, res) => {
   }
 });
 
-// // Get Transaction of sub materi from materi route
-// router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
-//   const { userId } = req.params;
+// Get Transaction of sub materi from materi route
+router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
+  const { userId } = req.query;
 
-//   try {
-//     // Check if user exists
-//     db.query('SELECT * FROM users_learning_sub_subject WHERE id_user = ?', [userId], async (err, results) => {
-//       if (err) throw err;
-//       if (results.length === 0) {
-//         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Subject list not provided, for user: ' + userId));
-//       }
+  try {
+    // Check if user exists
+    db.query('SELECT * FROM users_learning_sub_subject WHERE id_user = ?', [userId], async (err, results) => {
+      if (err) throw err;
+      if (results.length === 0) {
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi not provided, for user: ' + userId));
+      }
 
-//       res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Logged in successfuly', results));
-//     });
-//   } catch (err) {
-//     console.error(err.message);
-//     res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
-//   }
-// });
+      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+  }
+});
 
 
 module.exports = router
