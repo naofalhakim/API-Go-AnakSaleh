@@ -9,7 +9,7 @@ const URL = {
     MATERI: {
         getAllMateri: '/get-all-materi',
         initUserMateri: '/init-users-learning-subject',
-        initUserSubMateri: '/init-users-learning-sub_subject',
+        initUserSubMateri: '/init-users-learning-sub-subject',
         login: '/login',
         register: '/register',
         requestReset: '/request-reset',

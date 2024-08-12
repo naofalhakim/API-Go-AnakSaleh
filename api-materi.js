@@ -80,7 +80,7 @@ router.post(URL.MATERI.initUserMateri, async (req, res) => {
 });
 
 // Init Sub-Materi data to new user
-router.post(URL.MATERI.initUserMateri, async (req, res) => {
+router.post(URL.MATERI.initUserSubMateri, async (req, res) => {
   // const dummyData = {
   //   userId: 5,
   // }
@@ -88,27 +88,26 @@ router.post(URL.MATERI.initUserMateri, async (req, res) => {
 
   try {
     // Check if user exists
-    db.query('SELECT * FROM subject', async (err, results) => {
+    db.query('SELECT * FROM sub_subject', async (err, results) => {
       if (err) throw err;
       else {
         let dataSubmit = []
-        results.map(item => {
+        results.map((item, index) => {
           dataSubmit.push([
             userId,
             item.id,
-            0,
-            'START'
+            index === 0 ? 2 : 1, // first sub materi should use continue status to make the materi accesible, based one logic in app ( 1 = locked, 2 = continue learning, 3 = done learning)
           ])
         })
 
-        const sql = 'INSERT INTO users_learning_subject (id_user, id_subject, unit_finished, unit_status) VALUES ?';
+        const sql = 'INSERT INTO users_learning_sub_subject (id_user, id_sub_subject, status) VALUES ?';
 
         db.query(sql, [dataSubmit], async (err, results) => {
           if (err) {
             console.log(err, 'error')
             res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, err));
           } else {
-            res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'suceed initing data subject for user: ' + userId));
+            res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'suceed initing data sub materi for user: ' + userId));
           }
         })
       }
