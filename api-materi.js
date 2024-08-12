@@ -95,13 +95,14 @@ router.post(URL.MATERI.initUserSubMateri, async (req, res) => {
         results.map((item, index) => {
           dataSubmit.push([
             userId,
+            item.id_subject,
             item.id,
             item.id === 1 || item.id === 5 ? 2 : 1, // first sub materi should use continue status to make the materi accesible, based one logic in app ( 1 = locked, 2 = continue learning, 3 = done learning)
             //id 1 and id 5, is the first sub materi for each complete materi
           ])
         })
 
-        const sql = 'INSERT INTO users_learning_sub_subject (id_user, id_sub_subject, status) VALUES ?';
+        const sql = 'INSERT INTO users_learning_sub_subject (id_user, id_subject, id_sub_subject, status) VALUES ?';
 
         db.query(sql, [dataSubmit], async (err, results) => {
           if (err) {
@@ -118,6 +119,41 @@ router.post(URL.MATERI.initUserSubMateri, async (req, res) => {
     res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
   }
 });
+
+// Update Sub-Materi and Materi status after user open the article content
+// router.put(URL.MATERI.updateMateriStatus, async (req, res) => {
+//   const { user_id, id_subject, id_sub_subject, status } = req.body;
+
+//   try {
+//     const update_sub_subject_status = `UPDATE users_learning_sub_subject SET status =${status} WHERE id_sub_subject = ${id_sub_subject} and id_user=${user_id}`;
+//     db.query(`SELECT * FROM users_learning_sub_subject where id_user=${user_id} and id_subject=${id_subject}`, async (err, results) => {
+//       if (err) throw err;
+//       else {
+        
+//         let statusSubject = ''
+//         let unitFinished = 0
+
+//         results.map(item=>{
+//           if(item.status === 3){ // 3 is finished, 2 continue, 1 locked
+//             unitFinished = unitFinished + 1
+//           }
+//         })
+//         const update_subject_status = `UPDATE users_learning_subject unit_status=${statusSubject}, unit_finished=${unitFinished} WHERE id_user=${user_id} and id_subject=${id_subject}`;
+//         db.query(update_subject_status, '', async (err, results) => {
+//           if (err) {
+//             console.log(err, 'error')
+//             res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, err));
+//           } else {
+//             res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'suceed initing data sub materi for user: ' + user_id));
+//           }
+//         })
+//       }
+//     });
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+//   }
+// });
 
 
 // Get Transaction of materi from materi route
