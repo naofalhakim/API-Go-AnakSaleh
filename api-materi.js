@@ -96,7 +96,8 @@ router.post(URL.MATERI.initUserSubMateri, async (req, res) => {
           dataSubmit.push([
             userId,
             item.id,
-            index === 0 ? 2 : 1, // first sub materi should use continue status to make the materi accesible, based one logic in app ( 1 = locked, 2 = continue learning, 3 = done learning)
+            item.id === 1 || item.id === 5 ? 2 : 1, // first sub materi should use continue status to make the materi accesible, based one logic in app ( 1 = locked, 2 = continue learning, 3 = done learning)
+            //id 1 and id 5, is the first sub materi for each complete materi
           ])
         })
 
