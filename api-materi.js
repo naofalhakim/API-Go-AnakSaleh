@@ -18,14 +18,6 @@ const db = mysql.createConnection({
   database: 'go_anak_saleh',
 });
 
-const transporter = nodemailer.createTransport({
-  host: 'localhost',
-  port: 587,
-  auth: {
-    user: 'naofalhakim@gmail.com',
-    pass: 'Terate@1922'
-  }
-});
 
 const myConnection = () => {
   db.connect((err) => {
@@ -176,7 +168,7 @@ router.get(URL.MATERI.getAllMateri, async (req, res) => {
 
   try {
     // Check if user exists
-    db.query('SELECT * FROM users_learning_subject WHERE id_user = ?', [userId], async (err, results) => {
+    db.query('SELECT users_learning_subject.id_user, users_learning_subject.id_subject, users_learning_subject.unit_finished, users_learning_subject.unit_status, subject.title, subject.description, subject.unit_total, subject.thumbnail FROM users_learning_subject INNER JOIN subject ON users_learning_subject.id_subject = subject.id and users_learning_subject.id_user = ?', [userId], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Subject list not provided, for user: ' + userId));
