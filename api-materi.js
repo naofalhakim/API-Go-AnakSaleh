@@ -168,7 +168,8 @@ router.get(URL.MATERI.getAllMateri, async (req, res) => {
 
   try {
     // Check if user exists
-    db.query('SELECT users_learning_subject.id_user, users_learning_subject.id_subject, users_learning_subject.unit_finished, users_learning_subject.unit_status, subject.title, subject.description, subject.unit_total, subject.thumbnail FROM users_learning_subject INNER JOIN subject ON users_learning_subject.id_subject = subject.id and users_learning_subject.id_user = ?', [userId], async (err, results) => {
+    db.query(`SELECT users_learning_subject.id_user, users_learning_subject.id_subject, users_learning_subject.unit_finished, users_learning_subject.unit_status, subject.title, subject.description, subject.unit_total, subject.thumbnail 
+      FROM users_learning_subject INNER JOIN subject ON users_learning_subject.id_subject = subject.id and users_learning_subject.id_user = ?`, [userId], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Subject list not provided, for user: ' + userId));
@@ -184,14 +185,15 @@ router.get(URL.MATERI.getAllMateri, async (req, res) => {
 
 // Get Transaction of sub materi from materi route
 router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
-  const { userId } = req.query;
+  const { userId, idSubject } = req.query;
 
   try {
     // Check if user exists
-    db.query('SELECT * FROM users_learning_sub_subject WHERE id_user = ?', [userId], async (err, results) => {
+    db.query(`SELECT mdl.id_subject, mdl.id_sub_subject, mdl.status, s_mdl.title, s_mdl.materi 
+      FROM users_learning_sub_subject as mdl INNER JOIN sub_subject as s_mdl ON mdl.id_sub_subject = s_mdl.id and mdl.id_user = ? and mdl.id_subject = ? `, [userId, idSubject], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
-        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi not provided, for user: ' + userId));
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi id:'+idSubject+' not provided, for user: ' + userId));
       }
 
       res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
