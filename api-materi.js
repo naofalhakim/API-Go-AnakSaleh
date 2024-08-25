@@ -16,6 +16,7 @@ const db = mysql.createConnection({
   user: 'root',
   password: '',
   database: 'go_anak_saleh',
+  multipleStatements: true 
 });
 
 
@@ -137,7 +138,7 @@ router.put(URL.MATERI.updateMateriStatus, async (req, res) => {
             })
 
             let statusSubject = unit_total === unitFinished ? 'DONE' : unitFinished === 0 ? 'START' : 'CONTINUE'; //DONE', 'CONTINUE', 'START'
-            
+
             // console.log(unit_total,'unit_total')
             // console.log(unitFinished,'unitFinished')
             // console.log(statusSubject,'statusSubject')
@@ -153,6 +154,66 @@ router.put(URL.MATERI.updateMateriStatus, async (req, res) => {
             })
           }
         });
+      }
+    })
+  } catch (err) {
+    console.error(err.message);
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+  }
+});
+
+// Update Sub-Materi and Materi status to done, and update the unit finished count 
+router.put(URL.MATERI.finishSubMateri, async (req, res) => {
+  const { user_id, id_subject, id_sub_subject } = req.body;
+  let status_done = 3
+  let status_ongoing = 2
+  try {
+    //check is sub subject already done? if yes, no need to execute all of below queries
+    db.query(`SELECT * FROM users_learning_sub_subject where id_user=${user_id} and id_sub_subject=${id_sub_subject}`, async (err, results) => {
+      let isSubSubjectDone = results[0].status === 3 //3 is status of done
+      if (err) {
+        res.json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.BAD_REQUEST, err));
+      } else if (isSubSubjectDone) {
+        res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Subject ' + id_sub_subject + 'already done'));
+      } else {
+        //update status for sub materi, after user open the materi on app
+        const update_sub_subject_status = `UPDATE users_learning_sub_subject SET status=${status_done} WHERE id_sub_subject=${id_sub_subject} and id_user=${user_id};UPDATE users_learning_sub_subject SET status=${status_ongoing} WHERE id_sub_subject=${id_sub_subject + 1} and id_user=${user_id};`;
+        db.query(update_sub_subject_status, async (err, results) => {
+          if (err) throw err;
+          else {
+            //select data sub materi based on materi id, get unit_total from count of table result
+            db.query(`SELECT * FROM users_learning_sub_subject where id_user=${user_id} and id_subject=${id_subject}`, async (err, results) => {
+              if (err) throw err;
+              else {
+                // console.log(results, 'result')
+                let unit_total = results.length
+                let unitFinished = 0
+
+                results.map(item => {
+                  if (item.status === 3) { // 3 is finished, 2 continue, 1 locked
+                    unitFinished = unitFinished + 1
+                  }
+                })
+
+                let statusSubject = unit_total === unitFinished ? 'DONE' : unitFinished === 0 ? 'START' : 'CONTINUE'; //DONE', 'CONTINUE', 'START'
+
+                // console.log(unit_total,'unit_total')
+                // console.log(unitFinished,'unitFinished')
+                // console.log(statusSubject,'statusSubject')
+
+                const update_subject_status = `UPDATE users_learning_subject SET unit_status='${statusSubject}', unit_finished=${unitFinished} WHERE id_user=${user_id} and id_subject=${id_subject}`;
+                db.query(update_subject_status, async (err, results) => {
+                  if (err) {
+                    console.log(err, 'error')
+                    res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, err));
+                  } else {
+                    res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'suceed update data materi for user: ' + user_id));
+                  }
+                })
+              }
+            });
+          }
+        })
       }
     })
   } catch (err) {
@@ -193,7 +254,7 @@ router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
       FROM users_learning_sub_subject as mdl INNER JOIN sub_subject as s_mdl ON mdl.id_sub_subject = s_mdl.id and mdl.id_user = ? and mdl.id_subject = ? `, [userId, idSubject], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
-        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi id:'+idSubject+' not provided, for user: ' + userId));
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi id:' + idSubject + ' not provided, for user: ' + userId));
       }
 
       //markup id sub subject
@@ -206,7 +267,7 @@ router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
       //   })
       //   res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', markupResult));
       // }else{
-        res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
+      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
       // }
 
     });

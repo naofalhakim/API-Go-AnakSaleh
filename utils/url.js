@@ -12,6 +12,7 @@ const URL = {
         initUserMateri: '/init-users-learning-subject',
         initUserSubMateri: '/init-users-learning-sub-subject',
         updateMateriStatus: '/update-sub-subject-status',
+        finishSubMateri: '/finish-sub-materi',
     }
 }
 
