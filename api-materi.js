@@ -195,8 +195,18 @@ router.get(URL.MATERI.getAllSubMateri, async (req, res) => {
       if (results.length === 0) {
         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Sub Materi id:'+idSubject+' not provided, for user: ' + userId));
       }
+      if(results[0].id_subject > 1){
+        let markupResult = []
+        results.map((item, index)=>{
+          markupResult.push({
+            ...item, id_sub_subject: index + 1
+          })
+        })
+        res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', markupResult));
+      }else{
+        res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
+      }
 
-      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
     });
   } catch (err) {
     console.error(err.message);
