@@ -67,6 +67,78 @@ router.get('/user-email', (req, res) => {
   });
 });
 
+const initMateriToUser = async (userId) => {
+
+  try {
+    // Check if user exists
+    db.query('SELECT * FROM subject', async (err, results) => {
+      if (err) throw err;
+      else {
+        let dataSubmit = []
+        results.map(item => {
+          dataSubmit.push([
+            userId,
+            item.id,
+            0,
+            'START'
+          ])
+        })
+
+        const sql = 'INSERT INTO users_learning_subject (id_user, id_subject, unit_finished, unit_status) VALUES ?';
+
+        db.query(sql, [dataSubmit], async (err, results) => {
+          // console.log(results, 'results')
+          if (err) {
+            // console.log(err, 'err')
+            return false
+          } else {
+            return true
+          }
+        })
+      }
+    });
+  } catch (err) {
+    // console.log(err, 'err')
+    return false
+  }
+}
+
+const initSubSubject = async (userId) => {
+
+  try {
+    // Check if user exists
+    db.query('SELECT * FROM sub_subject', async (err, results) => {
+      if (err) throw err;
+      else {
+        let dataSubmit = []
+        results.map((item, index) => {
+          dataSubmit.push([
+            userId,
+            item.id_subject,
+            item.id,
+            item.id === 1 || item.id === 5 ? 2 : 1, // first sub materi should use continue status to make the materi accesible, based one logic in app ( 1 = locked, 2 = continue learning, 3 = done learning)
+            //id 1 and id 5, is the first sub materi for each complete materi
+          ])
+        })
+
+        const sql = 'INSERT INTO users_learning_sub_subject (id_user, id_subject, id_sub_subject, status) VALUES ?';
+
+        db.query(sql, [dataSubmit], async (err, results) => {
+          // console.log(results, 'results')
+          if (err) {
+            // console.log(err, 'err')
+            return false
+          } else {
+            return true
+          }
+        })
+      }
+    });
+  } catch (err) {
+    console.log(err, 'err')
+    return false
+  }
+}
 
 // Register route
 router.post(URL.AUTH.register, (req, res) => {
@@ -101,9 +173,13 @@ router.post(URL.AUTH.register, (req, res) => {
           const hashedPassword = await bcrypt.hash(password, salt);
 
           // Create new user
-          db.query('INSERT INTO users (email, password, name, gender, age, phone) VALUES (?, ?, ?, ?, ?, ?)', [email, hashedPassword, name, gender, age, phone], (err, results) => {
+          db.query('INSERT INTO users (email, password, name, gender, age, phone) VALUES (?, ?, ?, ?, ?, ?)', [email, hashedPassword, name, gender, age, phone], async (err, results) => {
             if (err) throw err;
-            res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'User registered successfully'));
+            else {
+              await initMateriToUser(results.insertId);
+              await initSubSubject(results.insertId);
+              res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'User registered successfully'));
+            }
           });
 
         }
@@ -150,7 +226,7 @@ router.post(URL.AUTH.login, async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
-    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:'+ err.message));
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
   }
 });
 
@@ -166,7 +242,7 @@ router.post(URL.AUTH.requestReset, (req, res) => {
   db.query('SELECT * FROM users WHERE email = ? AND phone = ?', [email, phone], (err, results) => {
     if (err) throw err;
     if (results.length === 0) {
-      return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'No user with that email', {isUserExist: RESPONSE.ERROR}));
+      return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'No user with that email', { isUserExist: RESPONSE.ERROR }));
     }
 
     // const token = crypto.randomBytes(6).toString('hex');
@@ -190,7 +266,7 @@ router.post(URL.AUTH.requestReset, (req, res) => {
     //     res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset email sent' ));
     //   });
     // });
-    res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset email sent', {isUserExist: RESPONSE.SUCCESS} ));
+    res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Password reset email sent', { isUserExist: RESPONSE.SUCCESS }));
   });
 });
 
@@ -243,7 +319,7 @@ router.put('/update-profile', (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error(err);
-      return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR,RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
+      return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
     }
     if (results.affectedRows === 0) {
       return res.status(RESPONSE.CODE.URL_NOT_FOUND).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.URL_NOT_FOUND, 'User not found'))
@@ -279,7 +355,7 @@ router.put('/update-password', async (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error(err);
-      return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR,RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
+      return res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error'));
     }
     if (results.affectedRows === 0) {
       return res.status(RESPONSE.CODE.URL_NOT_FOUND).json(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.URL_NOT_FOUND, 'User not found'))
