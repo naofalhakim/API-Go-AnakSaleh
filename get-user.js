@@ -173,7 +173,7 @@ router.post(URL.AUTH.register, (req, res) => {
           const hashedPassword = await bcrypt.hash(password, salt);
 
           // Create new user
-          db.query('INSERT INTO users (email, password, name, gender, age, phone) VALUES (?, ?, ?, ?, ?, ?)', [email, hashedPassword, name, gender, age, phone], async (err, results) => {
+          db.query('INSERT INTO users (email, password, name, gender, age, phone, point) VALUES (?, ?, ?, ?, ?, ?, ?)', [email, hashedPassword, name, gender, age, phone, 0], async (err, results) => {
             if (err) throw err;
             else {
               await initMateriToUser(results.insertId);
