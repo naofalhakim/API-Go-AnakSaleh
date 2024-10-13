@@ -13,6 +13,9 @@ const URL = {
         initUserSubMateri: '/init-users-learning-sub-subject',
         updateMateriStatus: '/update-sub-subject-status',
         finishSubMateri: '/finish-sub-materi',
+    },
+    REWARD: {
+        getAllReward: '/get-all-reward',
     }
 }
 

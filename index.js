@@ -1,6 +1,7 @@
 const express = require('express');
 const users = require('./get-user');
 const materi = require('./api-materi');
+const reward = require('./api-reward');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,3 +15,4 @@ app.listen(PORT, () => {
 app.use(express.json());
 app.use('/users', users);
 app.use('/materi', materi);
+app.use('/reward', reward);
