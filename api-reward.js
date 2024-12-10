@@ -33,7 +33,27 @@ router.get(URL.REWARD.getAllReward, async (req, res) => {
 
   try {
     // Check if user exists
-    db.query(`SELECT * FROM reward WHERE id_user = ?`, [userId], async (err, results) => {
+    db.query(`SELECT * FROM reward WHERE reward.status < 2 and id_user = ?`, [userId], async (err, results) => {
+      if (err) throw err;
+      if (results.length === 0) {
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Rewards not provided, for user: ' + userId));
+      }
+
+      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+  }
+});
+
+// Get History of reward
+router.get(URL.REWARD.getHistoryReward, async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    // Check if user exists
+    db.query(`SELECT * FROM reward WHERE reward.status = 2 and id_user = ?`, [userId], async (err, results) => {
       if (err) throw err;
       if (results.length === 0) {
         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Rewards not provided, for user: ' + userId));
