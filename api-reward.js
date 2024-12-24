@@ -11,7 +11,7 @@ const db = mysql.createConnection({
   user: 'root',
   password: '',
   database: 'go_anak_saleh',
-  multipleStatements: true 
+  multipleStatements: true
 });
 
 
@@ -67,5 +67,32 @@ router.get(URL.REWARD.getHistoryReward, async (req, res) => {
   }
 });
 
+
+// Attempt reward (reduce point and update date to selected date)
+router.put(URL.REWARD.attemptReward, async (req, res) => {
+  const { userId, date, point, rewardId } = req.body;
+  
+  try {
+    // Check if user exists
+    db.query(`UPDATE reward SET date=${date}, status=1 WHERE reward.id = ${rewardId} and id_user = ${userId}`, async (err, results) => {
+      if (err) throw err;
+      console.log(date, 'date')
+      if (results) {
+        //reduce point
+        db.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
+          console.log(results, 'results')
+          if (err) throw err;
+          db.query(`UPDATE users SET point=${results[0].point - point} WHERE id = ${userId}`, async (err, results) => {
+            console.log(results, 'results')
+            res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Reward attempted', results));
+          })
+        });
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+  }
+});
 
 module.exports = router

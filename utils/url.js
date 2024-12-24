@@ -17,6 +17,7 @@ const URL = {
     REWARD: {
         getAllReward: '/get-all-reward',
         getHistoryReward: '/get-history-reward',
+        attemptReward: '/attempt-reward',
     }
 }
 
