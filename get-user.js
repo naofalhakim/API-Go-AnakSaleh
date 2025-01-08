@@ -218,8 +218,7 @@ router.post(URL.AUTH.login, async (req, res) => {
       }
 
       // Create and return JWT
-      const payload = { userId: user.email };
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1y' });
+      const token = jwt.sign({password: user.password}, JWT_SECRET);
 
       delete user.password;
       res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Logged in successfuly', { ...user, token }));
@@ -230,6 +229,42 @@ router.post(URL.AUTH.login, async (req, res) => {
   }
 });
 
+// Get user info
+router.post(URL.AUTH.userInfo, async (req, res) => {
+  const { email } = req.body;
+  const token = req.header('Authorization');
+
+  console.log(token, 'token');
+
+  if (!token) {
+    return res.status(RESPONSE.CODE.UNAUTHORIZED).send({ message: 'Unauthorized' });
+  }
+
+  const tokenDecoded = jwt.verify(token, JWT_SECRET);
+
+  try {
+    // Check if user exists
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+      if (err) throw err;
+      if (results.length === 0) {
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Invalid email or password'));
+      }
+
+      const user = results[0];
+      // console.log(user.password, 'user.password');
+      // console.log(tokenDecoded, 'tokenDecoded');
+
+      if(user.password === tokenDecoded.password){
+        res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Logged in successfuly', { ...user, token }));
+      }else{
+        return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Invalid email or password'));
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(RESPONSE.CODE.INTERNAL_SERVER_ERROR).send(generateResponse(RESPONSE.ERROR, RESPONSE.CODE.INTERNAL_SERVER_ERROR, 'Server error:' + err.message));
+  }
+});
 
 // Request password reset
 router.post(URL.AUTH.requestReset, (req, res) => {
