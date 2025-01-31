@@ -38,8 +38,8 @@ router.get(URL.REWARD.getAllReward, async (req, res) => {
       if (results.length === 0) {
         return res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Rewards not provided, for user: ' + userId));
       }
-
-      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', results));
+      let newResult = results.map(item => ({...item, date: new Date(Number(item.date))}));
+      res.json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'Data loaded', newResult));
     });
   } catch (err) {
     console.error(err.message);
@@ -71,12 +71,12 @@ router.get(URL.REWARD.getHistoryReward, async (req, res) => {
 // Attempt reward (reduce point and update date to selected date)
 router.put(URL.REWARD.attemptReward, async (req, res) => {
   const { userId, date, point, rewardId } = req.body;
+  const milliseconds = new Date(date.toString()).getTime();
   
   try {
     // Check if user exists
-    db.query(`UPDATE reward SET date=${date}, status=1 WHERE reward.id = ${rewardId} and id_user = ${userId}`, async (err, results) => {
+    db.query(`UPDATE reward SET date=${milliseconds}, status=1 WHERE reward.id = ${rewardId} and id_user = ${userId}`, async (err, results) => {
       if (err) throw err;
-      console.log(date, 'date')
       if (results) {
         //reduce point
         db.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
