@@ -1,14 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-
 const mysql = require('mysql2');
 const { URL, RESPONSE } = require('./utils/url');
 const { generateResponse } = require('./utils/function');
-const { JWT_SECRET, EMAIL_USER } = require('./utils/env');
 
 
 const db = mysql.createConnection({
