@@ -19,6 +19,11 @@ const URL = {
         getAllReward: '/get-all-reward',
         getHistoryReward: '/get-history-reward',
         attemptReward: '/attempt-reward',
+    },
+    PRAYING: {
+        getAllPraying: '/get-all-praying',
+        getHistoryPraying: '/get-history-praying',
+        attemptPraying: '/attempt-praying',
     }
 }
 

@@ -139,6 +139,43 @@ const initSubSubject = async (userId) => {
   }
 }
 
+const initPraying = async (userId) => {
+  try {
+    // Check if user exists
+    db.query('SELECT * FROM ibadah', async (err, results) => {
+      if (err) throw err;
+      else {
+        const date = new Date().getTime();
+        let dataSubmit = []
+        results.map(item => {
+          dataSubmit.push([
+            item.id,
+            userId,
+            0,
+            date
+          ])
+        })
+
+        const sql = 'INSERT INTO nilai_ibadah (id_ibadah,id_user,point,date) VALUES ?';
+
+        db.query(sql, [dataSubmit], async (err, results) => {
+          // console.log(results, 'results')
+          if (err) {
+            // console.log(err, 'err')
+            return false
+          } else {
+            return true
+          }
+        })
+      }
+    });
+  } catch (err) {
+    // console.log(err, 'err')
+    return false
+  }
+ 
+}
+
 // Register route
 router.post(URL.AUTH.register, (req, res) => {
   // const dummyData = {
@@ -177,6 +214,7 @@ router.post(URL.AUTH.register, (req, res) => {
             else {
               await initMateriToUser(results.insertId);
               await initSubSubject(results.insertId);
+              await initPraying(results.insertId);
               res.status(RESPONSE.CODE.SUCCEED).json(generateResponse(RESPONSE.SUCCESS, RESPONSE.CODE.SUCCEED, 'User registered successfully'));
             }
           });
