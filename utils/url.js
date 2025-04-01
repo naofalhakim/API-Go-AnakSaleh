@@ -2,6 +2,7 @@ const URL = {
     AUTH: {
         getAllUser: '/get-all-user',
         login: '/login',
+        userInfo: '/user-info',
         register: '/register',
         requestReset: '/request-reset',
         resetPassword: '/reset-password',
@@ -16,6 +17,13 @@ const URL = {
     },
     REWARD: {
         getAllReward: '/get-all-reward',
+        getHistoryReward: '/get-history-reward',
+        attemptReward: '/attempt-reward',
+    },
+    PRAYING: {
+        getAllPraying: '/get-all-praying',
+        getHistoryPraying: '/get-history-praying',
+        attemptPraying: '/attempt-praying',
     }
 }
 
@@ -24,6 +32,7 @@ const RESPONSE = {
     SUCCESS: true,
     CODE: {
         SUCCEED: 200,
+        UNAUTHORIZED: 401,
         BAD_REQUEST: 400,
         URL_NOT_FOUND: 404,
         INTERNAL_SERVER_ERROR: 500,
